@@ -15,6 +15,13 @@
 __global__ void ger_kernel(int m, int n, float alpha, const float* x, const float* y, float* A)
 {
     // TODO: write your CUDA kernel here
+    int i = blockIdx.x * blockDim.x + threadIdx.x; // Row index
+    int j = blockIdx.y * blockDim.y + threadIdx.y; // Column index
+
+    if (i < m && j < n) {
+        // Column-major indexing: A[j * m + i]
+        A[(long long)j * m + i] += alpha * x[i] * y[j];
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,8 +114,10 @@ int main(int argc, char** argv)
 
     // n1000: configure your kernel here
     // TODO: the configuration below is a default that you must change
-    dim3 block(16, 16, 1);
-    dim3 grid( 1, 1, 1);
+    // dim3 block(16, 16, 1);
+    dim3 block(256, 1, 1);
+    // dim3 grid( 1, 1, 1);
+    dim3 grid((m + block.x - 1) / block.x, (n + block.y - 1) / block.y, 1);
     // end of TODO: kernel configuration
 
     cudaEvent_t start, stop;
